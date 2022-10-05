@@ -18,6 +18,9 @@ input_format = 'csv'
 input_bucket = 'date-format-test-pke'
 input_prefix = 'nytaxi'
 input_df = spark.read.option("header","true").format(input_format).load('s3://' + input_bucket + "/" + input_prefix)
+output_db = 'default'
+output_table = 'date_format_nytaxi_new'
+partition_keys = 'partition_date'
 
 # Step 2: Convert the Spark Data Frame into Glue Dynamic Frame 
 gluedf = DynamicFrame.fromDF(input_df, glueContext, "gluedf")
@@ -26,12 +29,12 @@ gluedf = DynamicFrame.fromDF(input_df, glueContext, "gluedf")
 # Step 3: Load the input glue dynamic frame to output table using enableUpdateCatalog property set to True
 sink = glueContext.write_dynamic_frame.from_catalog(
     frame=gluedf,
-    database="default",
-    table_name="date_format_nytaxi_new",
+    database=output_db,
+    table_name=output_table,
     additional_options={
         "enableUpdateCatalog": True,
         "updateBehavior": "UPDATE_IN_DATABASE",
-        "partitionKeys": ["partition_date"],
+        "partitionKeys": [partition_keys],
     },
     transformation_ctx="sink",
 )
